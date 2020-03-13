@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "adaptive_huffman.h"
+#include "../huffman_library/adaptive_huffman.h"
 
 
 void unarchivate(char* archive_name, char* unarchive_name) {
@@ -16,7 +16,7 @@ void unarchivate(char* archive_name, char* unarchive_name) {
          exit(0);
     }
        
-    output_file = fopen(unarchive_name, "wt");
+    output_file = fopen(unarchive_name, "wb");
     if (!output_file) {
         fclose(input_file);
         printf("ere\n");
@@ -24,9 +24,10 @@ void unarchivate(char* archive_name, char* unarchive_name) {
     }
     huffman_tree* root = initialize_tree(BYTE_SIZE, NULL);
     huffman_tree* tree;
-    huffman_tree** array = make_array(root);
+    huffman_tree* hash[256];
+    huffman_tree** array = make_array(root, hash);
     int count = 0;
-    tree = array[find_symbol_leaf(array, 0)];
+    tree = array[0];
     unsigned char symb;
     do  {
         
@@ -48,9 +49,9 @@ void unarchivate(char* archive_name, char* unarchive_name) {
        }
             
         if (tree->left == NULL && tree->right == NULL) {
-            fputc(tree->symbol, output_file);
+            fwrite(&tree->symbol, sizeof(char), 1 ,output_file);
             //putchar(tree->symbol);
-            change_tree(array, find_symbol_leaf(array, tree->symbol));
+            change_tree(array, hash[tree->symbol]->index);
         } 
     } while (!feof(input_file));
     fclose(input_file);

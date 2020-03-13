@@ -1,21 +1,21 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "adaptive_huffman.h"
+#include "../huffman_library/adaptive_huffman.h"
 
 void archivate(char* file_name, char* archive_name) {
     FILE* input_file, *output_file;
     huffman_tree* root;
     huffman_tree** array;
-    input_file = fopen(file_name, "rt");
+    input_file = fopen(file_name, "rb");
     if(!input_file) {
         printf("Cant open file\n");
         return;
     }
     char symbol;
    
-
+    huffman_tree* hash[256];
     root = initialize_tree(BYTE_SIZE, NULL);
-    array = make_array(root);
+    array = make_array(root, hash);
 
     int count = 0;
     char code[16];
@@ -35,10 +35,10 @@ void archivate(char* file_name, char* archive_name) {
         return;
     }
 
-    symbol = fgetc(input_file);
+    fread(&symbol, sizeof(char), 1, input_file);
     while (!feof(input_file)) {
         count = 0;
-        get_code(count, code, array[find_symbol_leaf(array, symbol)]);
+        get_code(count, code, array[hash[(unsigned char)symbol]->index]);
         for (last, count--; last < 8 && count >= 0; ++last, --count) {
             coded_letter[last] = code[count];
         }
@@ -51,10 +51,17 @@ void archivate(char* file_name, char* archive_name) {
                 coded_letter[last] = code[count];
             }
         }
-        change_tree(array, find_symbol_leaf(array, symbol));
-        symbol = fgetc(input_file);   
+        change_tree(array, hash[(unsigned char)symbol]->index);
+        fread(&symbol, sizeof(char), 1, input_file); 
     }
+    unsigned char letter = 0;
+    for (int i = 1, j = last - 1; j >= 0; i *= 2, --j) 
+        letter += i * coded_letter[j];
+    letter <<= 8 - last;
+    fwrite(&letter, sizeof(unsigned char), 1, output_file);
     fclose(input_file);
     fclose(output_file);
 }
+
+
 

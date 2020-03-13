@@ -22,24 +22,26 @@ huffman_tree* initialize_tree(int count, huffman_tree* p) {
     root->right = initialize_tree(count / 2, root);
     return root;
 }
-void func(huffman_tree* root, int height, huffman_tree* array[]) {
+void func(huffman_tree* root, int height, huffman_tree* array[], huffman_tree* hash[]) {
     static int index = 510;
     if (index == -1)
         index = 510;
     if (height == 1) {
-    
+        root->index = index;
+        if (index < 256)
+            hash[index] = root;
         array[index--] = root;
         return;
     } 
-    func(root->right, height - 1, array);
-    func(root->left, height - 1, array);
+    func(root->right, height - 1, array, hash);
+    func(root->left, height - 1, array, hash);
 }
 
-huffman_tree** make_array(huffman_tree* root) {
+huffman_tree** make_array(huffman_tree* root, huffman_tree* hash[]) {
     huffman_tree** array;
     array = (huffman_tree**)malloc(511 * sizeof(huffman_tree*));
     for (int i = 1; i <= 9; i++) {
-        func(root, i, array);
+        func(root, i, array, hash);
     } 
     return array;
 }
@@ -61,7 +63,11 @@ void swap(huffman_tree** array, int a, int b) {
     huffman_tree* tmpr = array[a]->parent;
     array[a]->parent = array[b]->parent;
     array[b]->parent = tmpr;
-    
+
+    int temp = array[b]->index;
+    array[b]->index = array[a]->index;
+    array[a]->index = temp;
+
     tmpr = array[a];
     array[a] = array[b];
     array[b] = tmpr;

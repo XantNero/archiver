@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "archiver.h"
-#include "adaptive_huffman.h"
+#include "../huffman_library/adaptive_huffman.h"
 
 
 int main(int argc, char* argv[]) {
